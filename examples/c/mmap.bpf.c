@@ -14,11 +14,18 @@ struct {
 	__type(value, __u64);
 } data_map SEC(".maps");
 
+int my_pid = 0;
+
 SEC("raw_tracepoint/sys_enter")
 int test_mmap(void *ctx)
 {
     int zero = 0;
 	__u64 val, *p;
+	
+    /* Only procced when syscall comes from the userspace prog */
+    int pid = bpf_get_current_pid_tgid() >> 32;
+    if (pid != my_pid)
+        return 0;
 
 	/* data_map[0] = data_map[0] * 2; */
 	p = bpf_map_lookup_elem(&data_map, &zero);

@@ -43,6 +43,9 @@ int main(int argc, char *argv[])
         fprintf(stderr, "bpf_map__set_max_entries: failed!\n"); 
         goto cleanup;
     }
+	
+    /* ensure BPF program only handles syscalls from our process */
+	skel->bss->my_pid = getpid();
 
 	err = mmap_bpf__load(skel);
     if (err) {
