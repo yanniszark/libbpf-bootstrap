@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     }
 	data_map_id = map_info.id;
 
-	/* map as R/W first */
+	/* map as R/W */
 	map_mmaped = mmap(NULL, map_sz, PROT_READ | PROT_WRITE, MAP_SHARED,
 			  data_map_fd, 0);
     if (map_mmaped == MAP_FAILED) {

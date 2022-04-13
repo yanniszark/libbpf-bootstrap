@@ -27,11 +27,12 @@ int test_mmap(void *ctx)
     if (pid != my_pid)
         return 0;
 
-	/* data_map[0] = data_map[0] * 2; */
 	lock = bpf_map_lookup_elem(&data_map, &zero);
-	x = bpf_map_lookup_elem(&data_map, &one);
+	
+    x = bpf_map_lookup_elem(&data_map, &one);
 	y = bpf_map_lookup_elem(&data_map, &two);
-	user_count = bpf_map_lookup_elem(&data_map, &three);
+	
+    user_count = bpf_map_lookup_elem(&data_map, &three);
 	kern_count = bpf_map_lookup_elem(&data_map, &four);
 	
     if (!__sync_bool_compare_and_swap(lock, 0, 1)) {
