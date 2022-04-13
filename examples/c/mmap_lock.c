@@ -4,7 +4,7 @@
 #include <stdatomic.h>
 #include <sys/mman.h>
 #include <errno.h>
-#include "mmap.skel.h"
+#include "mmap_lock.skel.h"
 
 struct map_data {
 	__u64 val[512 * 4];
@@ -21,18 +21,18 @@ int main(int argc, char *argv[])
 	const size_t map_sz = roundup_page(sizeof(struct map_data));
 	const int zero = 0;
 	const long page_size = sysconf(_SC_PAGE_SIZE);
-	int err, data_map_fd, data_map_id;
+	int i, err, data_map_fd, data_map_id;
 	struct bpf_map *data_map;
 	void *map_mmaped = NULL;
 	struct bpf_map_info map_info;
 	__u32 map_info_sz = sizeof(map_info);
 	struct map_data *map_data;
-	struct mmap_bpf *skel;
+	struct mmap_lock_bpf *skel;
     
     atomic_uintmax_t *lock;
 	__u64 *x, *y, *user_count, *kern_count;
 
-	skel = mmap-lock_bpf__open();
+	skel = mmap_lock_bpf__open();
     if (!skel) {
         fprintf(stderr, "skel_open: skeleton open failed!\n");
         return;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     /* ensure BPF program only handles syscalls from our process */
 	skel->bss->my_pid = getpid();
 
-	err = mmap-lock_bpf__load(skel);
+	err = mmap_lock_bpf__load(skel);
     if (err) {
         fprintf(stderr, "skel_load: skeleton load failed!\n"); 
         goto cleanup;
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	
 	map_data = map_mmaped;
 
-	err = mmap-lock_bpf__attach(skel);
+	err = mmap_lock_bpf__attach(skel);
     if (err) {
         fprintf(stderr, "attach_raw_tp: failed %d\n", err); 
         goto cleanup;
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     }
 
 
-	mmap-lock_bpf__destroy(skel);
+	mmap_lock_bpf__destroy(skel);
 	skel = NULL;
 	map_mmaped = NULL;
 
@@ -137,5 +137,5 @@ int main(int argc, char *argv[])
 cleanup:
 	if (map_mmaped)
 		munmap(map_mmaped, map_sz);
-	mmap-lock_bpf__destroy(skel);
+	mmap_lock_bpf__destroy(skel);
 }
