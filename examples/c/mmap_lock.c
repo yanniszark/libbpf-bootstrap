@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 #include <stdio.h>
+#include <stdbool.h>
 #include <unistd.h>
+#include <signal.h>
 #include <stdatomic.h>
 #include <sys/mman.h>
 #include <errno.h>
@@ -14,6 +16,13 @@ static size_t roundup_page(size_t sz)
 {
 	long page_size = sysconf(_SC_PAGE_SIZE);
 	return (sz + page_size - 1) / page_size * page_size;
+}
+
+static volatile bool exiting = false;
+
+static void sig_handler(int sig)
+{
+	exiting = true;
 }
 
 int main(int argc, char *argv[])
@@ -31,6 +40,10 @@ int main(int argc, char *argv[])
     
     atomic_uintmax_t *lock;
 	__u64 *x, *y, *user_count, *kern_count;
+
+	/* Clean handling of Ctrl-C */
+	signal(SIGINT, sig_handler);
+	signal(SIGTERM, sig_handler);
 
 	skel = mmap_lock_bpf__open();
     if (!skel) {
@@ -87,13 +100,14 @@ int main(int argc, char *argv[])
 
     /* Implement all synchronization */
     lock = map_data->val;
-    x = &map_data->val + 1;
-    y = &map_data->val + 2;
-    user_count = &map_data->val + 3;
-    kern_count = &map_data->val + 4;
+    x = map_data->val + 1;
+    y = map_data->val + 2;
+    user_count = map_data->val + 3;
+    kern_count = map_data->val + 4;
 
     uintmax_t expected = 0;
-    while (1) {
+    
+    while (!exiting) {
         while (!atomic_compare_exchange_strong(lock, &expected, 1))
             expected = 0;
         
