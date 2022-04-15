@@ -28,12 +28,24 @@ int test_mmap(void *ctx)
         return 0;
 
     lock = bpf_map_lookup_elem(&data_map, &zero);
+
+    /* This is for convincing verifier that it's not NULL*/ 
+    if (!lock)
+        return 0;
     
     x = bpf_map_lookup_elem(&data_map, &one);
     y = bpf_map_lookup_elem(&data_map, &two);
+
+    /* This is for convincing verifier that it's not NULL*/ 
+    if (!x || !y)
+        return 0;
     
     user_count = bpf_map_lookup_elem(&data_map, &three);
     kern_count = bpf_map_lookup_elem(&data_map, &four);
+
+    /* This is for convincing verifier that it's not NULL*/ 
+    if (!kern_count || !user_count)
+        return 0;
     
     if (!__sync_bool_compare_and_swap(lock, 0, 1)) {
         return 0;
@@ -44,7 +56,7 @@ int test_mmap(void *ctx)
         if (*x != *y)
             bpf_printk("data race!\n");
         (*kern_count)++;
-        __sync_fetch_and_add(lock, 1);
+        __sync_fetch_and_sub(lock, 1);
     }
 
     return 0;

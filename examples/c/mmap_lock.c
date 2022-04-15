@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <signal.h>
 #include <stdatomic.h>
 #include <sys/mman.h>
@@ -23,6 +24,11 @@ static volatile bool exiting = false;
 static void sig_handler(int sig)
 {
     exiting = true;
+}
+
+void *get_pid(void *args) {
+    while (!exiting)
+        getpid();
 }
 
 int main(int argc, char *argv[])
@@ -98,6 +104,11 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
 
+    /* Spawn thread for firing syscalls */
+    pthread_t t;
+    
+    pthread_create(&t, NULL, get_pid, NULL);
+
     /* Implement all synchronization */
     lock = map_data->val;
     x = map_data->val + 1;
@@ -121,8 +132,11 @@ int main(int argc, char *argv[])
 
         (*user_count)++;
         atomic_store(lock, 0);
+        printf("\ruser_count: %u\tkernel_count: %u\n", *user_count, *kern_count);
+        fflush(stdout);
     }
 
+    pthread_join(t, NULL);
 
     mmap_lock_bpf__destroy(skel);
     skel = NULL;

@@ -13,6 +13,7 @@ VMLINUX := ../../vmlinux/$(ARCH)/vmlinux.h
 # outdated
 INCLUDES := -I$(OUTPUT) -I../../libbpf/include/uapi -I$(dir $(VMLINUX))
 CFLAGS := -g -Wall
+LDFLAGS := -lpthread -lelf -lz
 
 APPS = mmap_lock mmap minimal bootstrap uprobe kprobe fentry
 
@@ -85,7 +86,7 @@ $(OUTPUT)/%.o: %.c $(wildcard %.h) | $(OUTPUT)
 # Build application binary
 $(APPS): %: $(OUTPUT)/%.o $(LIBBPF_OBJ) | $(OUTPUT)
 	$(call msg,BINARY,$@)
-	$(Q)$(CC) $(CFLAGS) $^ -lelf -lz -o $@
+	$(Q)$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 # delete failed targets
 .DELETE_ON_ERROR:
