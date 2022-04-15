@@ -132,9 +132,10 @@ int main(int argc, char *argv[])
 
         (*user_count)++;
         atomic_store(lock, 0);
-        printf("\ruser_count: %u\tkernel_count: %u\n", *user_count, *kern_count);
+        printf("\ruser_count: %u kernel_count: %u", *user_count, *kern_count);
         fflush(stdout);
     }
+    printf("\n");
 
     pthread_join(t, NULL);
 
