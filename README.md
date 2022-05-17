@@ -180,6 +180,16 @@ $ sudo cat /sys/kernel/debug/tracing/trace_pipe
            <...>-2813507 [000] d.s1 602386.696735: bpf_trace_printk: packet size: 66
 ```
 
+# CAS lock using mmap()-able array map
+
+It requires latest clang compiler to build.
+[Compile latest clang from source](https://clang.llvm.org/get_started.html) and then
+build:
+
+```
+make CLANG=/path/to/latest/clang
+```
+
 # Building
 
 libbpf-bootstrap supports multiple build systems that do the same thing.
@@ -209,6 +219,14 @@ TIME     EVENT COMM             PID     PPID    FILENAME/EXIT CODE
 00:21:22 EXIT  dirname          4032384 4032381 [0] (1ms)
 00:21:22 EXEC  readlink         4032387 4032386 /usr/bin/readlink
 ^C
+```
+
+Some of the new features require latest clang compiler.
+In that case [compile latest clang from source](latest://clang.llvm.org/get_started.html)
+and point to that while running make:
+
+```
+make CLANG=/path/to/latest/clang
 ```
 
 CMake build:
