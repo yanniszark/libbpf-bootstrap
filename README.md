@@ -186,8 +186,30 @@ It requires latest clang compiler to build.
 [Compile latest clang from source](https://clang.llvm.org/get_started.html) and then
 build:
 
+```shell
+$ make CLANG=/path/to/latest/clang
 ```
+
+# Sharing variable field data using mmap()-able array map
+
+It requires latest clang compiler to build.
+[Compile latest clang from source](https://clang.llvm.org/get_started.html) and then
+build:
+
+```shell
 make CLANG=/path/to/latest/clang
+```
+
+Running the program:
+
+```shell
+$ sudo ./mmap_struct
+$ sudo cat /sys/kernel/debug/tracing/trace_pipe
+
+     mmap_struct-593203  [000] d..3. 536074.329976: bpf_trace_printk: values at index 0 is: 5   10
+
+     mmap_struct-593203  [000] d..3. 536074.330034: bpf_trace_printk: values at index 0 is: 5   10
+
 ```
 
 # Building
@@ -226,7 +248,7 @@ In that case [compile latest clang from source](latest://clang.llvm.org/get_star
 and point to that while running make:
 
 ```
-make CLANG=/path/to/latest/clang
+$ make CLANG=/path/to/latest/clang
 ```
 
 CMake build:
