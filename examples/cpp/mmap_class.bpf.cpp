@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <bpf/bpf_helpers.h>
 
+extern "C" {
+
 char _license[] SEC("license") = "GPL";
 
 class X {
@@ -12,6 +14,7 @@ class X {
         X() {}
 
         int getX(void) { return x;}
+        void setX(int n) {x = n;}
     private:
         int x;
 };
@@ -20,7 +23,7 @@ struct {
 	__uint(type, BPF_MAP_TYPE_ARRAY);
 	__uint(map_flags, BPF_F_MMAPABLE);
 	__type(key, __u32);
-	__type(value, X);
+	__type(value, int);
 } data_map SEC(".maps");
 
 int my_pid = 0;
@@ -46,3 +49,4 @@ int test_mmap(void *ctx)
 	return 0;
 }
 
+} // extern "C"

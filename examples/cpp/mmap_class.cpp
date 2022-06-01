@@ -3,15 +3,21 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <errno.h>
+#include <bpf/bpf.h>
 #include "mmap_class.skel.h"
 
-struct ds {
-    int x;
-    int y;
+class X {
+    public:
+        X() {}
+
+        int getX(void) { return x;}
+        void setX(int n) {x = n;}
+    private:
+        int x;
 };
 
 struct map_data {
-	struct ds val[512 * 4];
+	X val[512 * 4];
 };
 
 static size_t roundup_page(size_t sz)
@@ -36,7 +42,7 @@ int main(int argc, char *argv[])
 	skel = mmap_class_bpf__open();
     if (!skel) {
         fprintf(stderr, "skel_open: skeleton open failed!\n");
-        return;
+        return -1;
     }
 
 	/* at least 4 pages of data */
@@ -87,8 +93,7 @@ int main(int argc, char *argv[])
     }
 
     /* Writing data to the first element of the array */
-    map_data->val->x = 5;
-    map_data->val->y = 10;
+    map_data->val->setX(5);
 
 	usleep(1);
 

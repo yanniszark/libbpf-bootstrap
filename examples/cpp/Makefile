@@ -12,7 +12,7 @@ VMLINUX := ../../vmlinux/$(ARCH)/vmlinux.h
 # libbpf to avoid dependency on system-wide headers, which could be missing or
 # outdated
 INCLUDES := -I$(OUTPUT) -I../../libbpf/include/uapi -I$(dir $(VMLINUX))
-CFLAGS := -g -Wall
+CFLAGS := -g -Wall -fpermissive
 LDFLAGS := -lpthread -lelf -lz
 
 APPS = mmap_class
@@ -68,7 +68,7 @@ $(BPFTOOL): | $(dir $(BPFTOOL))
 # Build BPF code
 $(OUTPUT)/%.bpf.o: %.bpf.cpp $(LIBBPF_OBJ) $(wildcard %.h) $(VMLINUX) | $(OUTPUT)
 	$(call msg,BPF,$@)
-	$(Q)$(CLANG) -g -O2 -target bpf -D__TARGET_ARCH_$(ARCH) $(INCLUDES) $(CLANG_BPF_SYS_INCLUDES) -c $(filter %.cpp,$^) -o $@
+	$(Q)$(CLANG) -fno-exceptions -fno-rtti -g -O2 -target bpf -D__TARGET_ARCH_$(ARCH) $(INCLUDES) $(CLANG_BPF_SYS_INCLUDES) -c $(filter %.cpp,$^) -o $@
 	$(Q)$(LLVM_STRIP) -g $@ # strip useless DWARF info
 
 # Generate BPF skeletons
