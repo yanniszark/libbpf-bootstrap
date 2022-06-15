@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <errno.h>
+#include <bpf/bpf.h>
 #include "mmap_struct.skel.h"
 
 struct ds {
