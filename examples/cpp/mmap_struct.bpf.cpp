@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <bpf/bpf_helpers.h>
 
+extern "C" {
 char _license[] SEC("license") = "GPL";
 
 struct ds {
@@ -41,4 +42,4 @@ int test_mmap(void *ctx)
 
 	return 0;
 }
-
+}
