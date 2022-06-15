@@ -306,8 +306,9 @@ $ sudo ./target/release/xdp 1
 
 This requires latest clang compiler. First compile latest clang from source. Then Copy `examples/cpp/bpf_helper_defs_cpp.h` to `libbpf/src/bpf_helper_defs.h` and run make:
 ```shell
+$ cd examples/cpp
 $ cp libbpf/src/bpf_helper_defs.h libbpf/src/bpf_helper_defs.h.bak
-$ cp examples/cpp/bpf_helper_defs.h libbpf/src/bpf_helper_defs.h
+$ cp examples/cpp/bpf_helper_defs_cpp.h libbpf/src/bpf_helper_defs.h
 $ make CLANG=/path/to/clang
 ```
 
