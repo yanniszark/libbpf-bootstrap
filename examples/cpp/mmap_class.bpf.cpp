@@ -39,6 +39,12 @@ int test_mmap(void *ctx)
     if (p) {
         bpf_printk("Addr: %p\n", p);
         bpf_printk("values at index %d is: %d\n", zero, p->getX());
+
+        /* Accessing pointer from userspace */
+        bpf_printk("Pointer addr: %p\n", p->getP());
+
+        /* Verifier pukes */
+        bpf_printk("Pointer val: %d\n", *p->getP());
 	}
 
 	return 0;

@@ -4,6 +4,8 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <bpf/bpf.h>
+#include <stdlib.h>
+
 #include "mmap_class.skel.h"
 #include "classdef.h"
 
@@ -29,6 +31,10 @@ int main(int argc, char *argv[])
 	__u32 map_info_sz = sizeof(map_info);
 	struct map_data *map_data;
 	struct mmap_class_bpf *skel;
+    
+    /* heap allocate an int */
+    int *p = (int *)malloc(sizeof(int));
+    *p = 10;
 
 	skel = mmap_class_bpf__open();
     if (!skel) {
@@ -87,6 +93,10 @@ int main(int argc, char *argv[])
     printf("Userspace addr: %p\n", &map_data->val);
     map_data->val->setX(5);
 
+    /* Test: Access userspace pointer from bpf */
+    printf("Userspace pointer addr: %p\n", p);
+    map_data->val->setP(p);
+
 	usleep(1);
 
 	mmap_class_bpf__destroy(skel);
@@ -116,6 +126,7 @@ int main(int argc, char *argv[])
     sleep(1000);
 
 cleanup:
+    free(p);
 	if (map_mmaped)
 		munmap(map_mmaped, map_sz);
 	mmap_class_bpf__destroy(skel);
