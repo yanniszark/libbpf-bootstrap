@@ -8,7 +8,7 @@ class X {
         int getX(void) { return x;}
         void setX(int n) { x = n; }
 
-        int getP(void) { return *p; }
+        int* getP(void) { return p; }
         void setP(int *n) { p = n; }
     private:
         int x;
