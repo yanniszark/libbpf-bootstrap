@@ -5,16 +5,7 @@
 #include <errno.h>
 #include <bpf/bpf.h>
 #include "mmap_class.skel.h"
-
-class X {
-    public:
-        X() {}
-
-        int getX(void) { return x;}
-        void setX(int n) {x = n;}
-    private:
-        int x;
-};
+#include "classdef.h"
 
 struct map_data {
 	X val[512 * 4];
@@ -93,6 +84,7 @@ int main(int argc, char *argv[])
     }
 
     /* Writing data to the first element of the array */
+    printf("Userspace addr: %p\n", &map_data->val);
     map_data->val->setX(5);
 
 	usleep(1);
@@ -120,6 +112,8 @@ int main(int argc, char *argv[])
 			break;
 		usleep(1);
 	}
+
+    sleep(1000);
 
 cleanup:
 	if (map_mmaped)

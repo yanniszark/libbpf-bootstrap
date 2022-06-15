@@ -7,17 +7,9 @@
 
 extern "C" {
 
+#include "classdef.h"
+
 char _license[] SEC("license") = "GPL";
-
-class X {
-    public:
-        X() {}
-
-        int getX(void) { return x;}
-        void setX(int n) {x = n;}
-    private:
-        int x;
-};
 
 typedef char raw_X[sizeof(class X)];
 
@@ -45,6 +37,7 @@ int test_mmap(void *ctx)
 	p = reinterpret_cast<X *>(bpf_map_lookup_elem(&data_map, &zero));
 	
     if (p) {
+        bpf_printk("Addr: %p\n", p);
         bpf_printk("values at index %d is: %d\n", zero, p->getX());
 	}
 
