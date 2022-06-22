@@ -219,7 +219,7 @@ This serves as a cross reference for folks coming from different backgrounds.
 
 ## Install Dependencies
 
-You will need `clang`, `libelf` and `zlib` to build the examples.
+You will need `clang`, `libelf`, `gcc-multilib` and `zlib` to build the examples.
 
 ## C Examples
 
