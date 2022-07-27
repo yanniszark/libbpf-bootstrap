@@ -36,7 +36,17 @@ int test_mmap(void *ctx)
     
     if (p) {
         bpf_printk("values at index %d is: %d\n", zero, p->x);
-        bpf_printk("Pointer at index %d is: %x\n", zero, p->next);
+        bpf_printk("Pointer at index %d is: %lx\n", zero, p->next);
+
+        /* verifier pukes */
+        /*
+        struct ds *q = (struct ds *)p->next;
+        bpf_printk("val: %d\n", q->x);
+        */
+
+        struct ds *q = (struct ds *)bpf_ptr_promote(p->next);
+        if (q)
+          bpf_printk("val: %d\n", q->x);
     }
 
     return 0;
