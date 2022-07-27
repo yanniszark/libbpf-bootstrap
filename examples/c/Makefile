@@ -15,7 +15,7 @@ INCLUDES := -I$(OUTPUT) -I../../libbpf/include/uapi -I$(dir $(VMLINUX))
 CFLAGS := -g -Wall
 LDFLAGS := -lpthread -lelf -lz
 
-APPS = mmap_struct mmap_lock mmap minimal bootstrap uprobe kprobe fentry
+APPS = ptr_share mmap_struct mmap_lock mmap minimal bootstrap uprobe kprobe fentry
 
 # Get Clang's default includes on this system. We'll explicitly add these dirs
 # to the includes list when compiling with `-target bpf` because otherwise some
