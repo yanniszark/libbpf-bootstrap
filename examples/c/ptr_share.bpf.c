@@ -20,6 +20,7 @@ struct {
 
 int my_pid = 0;
 
+
 SEC("raw_tracepoint/sys_enter")
 int test_mmap(void *ctx)
 {
@@ -35,16 +36,9 @@ int test_mmap(void *ctx)
     p = bpf_map_lookup_elem(&data_map, &zero);
     
     if (p) {
-        bpf_printk("values at index %d is: %d\n", zero, p->x);
-        bpf_printk("Pointer at index %d is: %lx\n", zero, p->next);
-
-        /* verifier pukes */
-        /*
-        struct ds *q = (struct ds *)p->next;
-        bpf_printk("val: %d\n", q->x);
-        */
-
-        struct ds *q = (struct ds *)bpf_ptr_promote(p->next);
+        long addr = (uint64_t)p + p->delta;
+        struct ds *q = (struct ds *)bpf_ptr_promote(&addr);
+        
         if (q)
           bpf_printk("val: %d\n", q->x);
     }

@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
     struct ds *second = map_data->val + 1;
 
     first->x = 5;
+    first->delta = (uint64_t)second - (uint64_t)first;
     first->next = second;
 
     second->x = 10;
@@ -95,8 +96,10 @@ int main(int argc, char *argv[])
 
     usleep(1);
 
+    printf("Addr first: %p\n", first);
     printf("Addr second: %p\n", second);
     printf("Addr first->next: %p\n", first->next);
+    printf("Delta: %d\n", first->delta);
 
     ptr_share_bpf__destroy(skel);
     skel = NULL;
