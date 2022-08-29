@@ -8,7 +8,7 @@
 #include "ptr_share.h"
 
 struct map_data {
-    struct ds val[512 * 4];
+    struct shared_region shared_region[1];
 };
 
 static size_t roundup_page(size_t sz)
@@ -30,6 +30,9 @@ int main(int argc, char *argv[])
     struct map_data *map_data;
     struct ptr_share_bpf *skel;
 
+    printf("map_sz: %lu\n", map_sz);
+    printf("map_data size: %lu\n", sizeof(struct map_data));
+
     skel = ptr_share_bpf__open();
     if (!skel) {
         fprintf(stderr, "skel_open: skeleton open failed!\n");
@@ -37,8 +40,9 @@ int main(int argc, char *argv[])
     }
 
     /* at least 4 pages of data */
-    err = bpf_map__set_max_entries(skel->maps.data_map,
-                       4 * (page_size / sizeof(__u64)));
+    printf("FLAG\n");
+    err = bpf_map__set_max_entries(skel->maps.data_map, map_sz);
+    printf("FLAG\n");
 
     if (err) {
         fprintf(stderr, "bpf_map__set_max_entries: failed!\n"); 
@@ -48,7 +52,9 @@ int main(int argc, char *argv[])
     /* ensure BPF program only handles syscalls from our process */
     skel->bss->my_pid = getpid();
 
+    printf("FLAG\n");
     err = ptr_share_bpf__load(skel);
+    printf("FLAG\n");
     if (err) {
         fprintf(stderr, "skel_load: skeleton load failed!\n"); 
         goto cleanup;
@@ -76,6 +82,20 @@ int main(int argc, char *argv[])
     }
     
     map_data = map_mmaped;
+    
+    /* Writing data to the first element of the array */
+    map_data->shared_region[0].userspace_base_addr = (void *)(&map_data->shared_region[0]);
+    printf("userspace base addr: %p\n", &map_data->shared_region[0]);
+    printf("userspace base addr: %p\n", map_data->shared_region[0].userspace_base_addr);
+    printf("void * size: %lu\n", sizeof(void *));
+
+    map_data->shared_region[0].region[822] = 'B';
+    uint64_t *ptr_to_elem = &map_data->shared_region[0].region[822];
+    printf("userspace pointer: %p\n", ptr_to_elem);
+
+    uint64_t ptr_int = (uint64_t)ptr_to_elem;
+    printf("userspace int pointer: %lx\n", ptr_int);
+    map_data->shared_region[0].region[0] = ptr_int;
 
     err = ptr_share_bpf__attach(skel);
     if (err) {
@@ -83,23 +103,7 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
 
-    /* Writing data to the first element of the array */
-    struct ds *first = map_data->val;
-    struct ds *second = map_data->val + 1;
-
-    first->x = 5;
-    first->delta = (uint64_t)second - (uint64_t)first;
-    first->next = second;
-
-    second->x = 10;
-    second->next = NULL;
-
     usleep(1);
-
-    printf("Addr first: %p\n", first);
-    printf("Addr second: %p\n", second);
-    printf("Addr first->next: %p\n", first->next);
-    printf("Delta: %d\n", first->delta);
 
     ptr_share_bpf__destroy(skel);
     skel = NULL;
