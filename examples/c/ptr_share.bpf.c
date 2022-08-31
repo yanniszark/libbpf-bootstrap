@@ -21,7 +21,7 @@ struct {
 int my_pid = 0;
 
 inline void *ptr_promote(void *userspace_base_addr, void *kernel_base_addr, uint64_t userspace_ptr) {
-  uint8_t delta = userspace_ptr - (uint64_t)userspace_base_addr;
+  uint64_t delta = userspace_ptr - (uint64_t)userspace_base_addr;
 
   if (delta >= sizeof(struct shared_region)) {
     return kernel_base_addr;
