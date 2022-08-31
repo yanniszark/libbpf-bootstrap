@@ -30,9 +30,6 @@ int main(int argc, char *argv[])
     struct map_data *map_data;
     struct ptr_share_bpf *skel;
 
-    printf("map_sz: %lu\n", map_sz);
-    printf("map_data size: %lu\n", sizeof(struct map_data));
-
     skel = ptr_share_bpf__open();
     if (!skel) {
         fprintf(stderr, "skel_open: skeleton open failed!\n");
@@ -40,9 +37,7 @@ int main(int argc, char *argv[])
     }
 
     /* at least 4 pages of data */
-    printf("FLAG\n");
     err = bpf_map__set_max_entries(skel->maps.data_map, map_sz);
-    printf("FLAG\n");
 
     if (err) {
         fprintf(stderr, "bpf_map__set_max_entries: failed!\n"); 
@@ -52,9 +47,7 @@ int main(int argc, char *argv[])
     /* ensure BPF program only handles syscalls from our process */
     skel->bss->my_pid = getpid();
 
-    printf("FLAG\n");
     err = ptr_share_bpf__load(skel);
-    printf("FLAG\n");
     if (err) {
         fprintf(stderr, "skel_load: skeleton load failed!\n"); 
         goto cleanup;
@@ -83,15 +76,15 @@ int main(int argc, char *argv[])
     
     map_data = map_mmaped;
     
-    /* Writing data to the first element of the array */
     map_data->shared_region[0].userspace_base_addr = (void *)(&map_data->shared_region[0]);
     printf("userspace base addr: %p\n", &map_data->shared_region[0]);
     printf("userspace base addr: %p\n", map_data->shared_region[0].userspace_base_addr);
     printf("void * size: %lu\n", sizeof(void *));
 
-    map_data->shared_region[0].region[822] = 'B';
-    uint64_t *ptr_to_elem = &map_data->shared_region[0].region[822];
+    map_data->shared_region[0].region[2] = 'B';
+    uint64_t *ptr_to_elem = &map_data->shared_region[0].region[2];
     printf("userspace pointer: %p\n", ptr_to_elem);
+    printf("Data: %c\n", *(char *)ptr_to_elem);
 
     uint64_t ptr_int = (uint64_t)ptr_to_elem;
     printf("userspace int pointer: %lx\n", ptr_int);
