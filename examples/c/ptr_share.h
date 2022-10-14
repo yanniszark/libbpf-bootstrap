@@ -3,15 +3,15 @@
 
 #include <inttypes.h>
 
-//struct ds {
-    //int x;
-    //int delta;
-    //struct ds *next;
-//};
-
 struct __attribute__((__packed__)) shared_region {
+  uint8_t region[1024]; // 1KB
   void *userspace_base_addr;
-  uint64_t region[1024]; // 1MB
+};
+
+struct test_struct {
+  int a;
+  int b;
+  int c;
 };
 
 #endif

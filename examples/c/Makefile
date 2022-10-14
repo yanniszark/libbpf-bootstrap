@@ -3,8 +3,8 @@ OUTPUT := .output
 CLANG ?= clang
 LLVM_STRIP ?= llvm-strip
 #LIBBPF_SRC := $(abspath ../../libbpf/src)
-LIBBPF_SRC := $(abspath ../../../linux/tools/lib/bpf)
-BPFTOOL_SRC := $(abspath ../../../linux/tools/bpf/bpftool/)
+LIBBPF_SRC := $(abspath ../../../XRP/linux/tools/lib/bpf)
+BPFTOOL_SRC := $(abspath ../../../XRP/linux/tools/bpf/bpftool/)
 LIBBPF_OBJ := $(abspath $(OUTPUT)/libbpf.a)
 BPFTOOL ?= $(abspath $(OUTPUT)/bpftool/bpftool)
 ARCH := $(shell uname -m | sed 's/x86_64/x86/' | sed 's/aarch64/arm64/' | sed 's/ppc64le/powerpc/' | sed 's/mips.*/mips/')
@@ -17,7 +17,7 @@ INCLUDES := -I$(OUTPUT) -I../../../linux/tools/include/uapi/ -I$(OUTPUT)/include
 CFLAGS := -g -Wall
 LDFLAGS := -lpthread -lelf -lz
 
-APPS = ptr_share mmap_struct mmap_lock mmap minimal bootstrap uprobe kprobe fentry
+APPS = ptr_share
 
 # Get Clang's default includes on this system. We'll explicitly add these dirs
 # to the includes list when compiling with `-target bpf` because otherwise some

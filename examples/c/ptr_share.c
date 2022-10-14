@@ -40,16 +40,16 @@ int main(int argc, char *argv[])
     err = bpf_map__set_max_entries(skel->maps.data_map, map_sz);
 
     if (err) {
-        fprintf(stderr, "bpf_map__set_max_entries: failed!\n"); 
+        fprintf(stderr, "bpf_map__set_max_entries: failed!\n");
         goto cleanup;
     }
-    
+
     /* ensure BPF program only handles syscalls from our process */
     skel->bss->my_pid = getpid();
 
     err = ptr_share_bpf__load(skel);
     if (err) {
-        fprintf(stderr, "skel_load: skeleton load failed!\n"); 
+        fprintf(stderr, "skel_load: skeleton load failed!\n");
         goto cleanup;
     }
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     memset(&map_info, 0, map_info_sz);
     err = bpf_obj_get_info_by_fd(data_map_fd, &map_info, &map_info_sz);
     if (err) {
-        fprintf(stderr, "map_get_info: failed %d\n", errno); 
+        fprintf(stderr, "map_get_info: failed %d\n", errno);
         goto cleanup;
     }
     data_map_id = map_info.id;
@@ -69,30 +69,34 @@ int main(int argc, char *argv[])
     map_mmaped = mmap(NULL, map_sz, PROT_READ | PROT_WRITE, MAP_SHARED,
               data_map_fd, 0);
     if (map_mmaped == MAP_FAILED) {
-        fprintf(stderr, "data_mmap: data_map mmap failed %d\n", errno); 
+        fprintf(stderr, "data_mmap: data_map mmap failed %d\n", errno);
         map_mmaped = NULL;
         goto cleanup;
     }
-    
+
     map_data = map_mmaped;
-    
+
     map_data->shared_region[0].userspace_base_addr = (void *)(&map_data->shared_region[0]);
     printf("userspace base addr: %p\n", &map_data->shared_region[0]);
     printf("userspace base addr: %p\n", map_data->shared_region[0].userspace_base_addr);
     printf("void * size: %lu\n", sizeof(void *));
 
-    map_data->shared_region[0].region[2] = 'B';
-    uint64_t *ptr_to_elem = &map_data->shared_region[0].region[2];
+    struct test_struct* ptr_to_elem = &map_data->shared_region[0].region[16];
+    ptr_to_elem->a = 1;
+    ptr_to_elem->b = 2;
+    ptr_to_elem->c = 3;
+
     printf("userspace pointer: %p\n", ptr_to_elem);
-    printf("Data: %c\n", *(char *)ptr_to_elem);
+    printf("Data: %d %d %d\n", ptr_to_elem->a, ptr_to_elem->b, ptr_to_elem->c);
 
     uint64_t ptr_int = (uint64_t)ptr_to_elem;
     printf("userspace int pointer: %lx\n", ptr_int);
-    map_data->shared_region[0].region[0] = ptr_int;
+    uint64_t *ptr_to_ptr = &map_data->shared_region[0].region[4];
+    *ptr_to_ptr = ptr_int;
 
     err = ptr_share_bpf__attach(skel);
     if (err) {
-        fprintf(stderr, "attach_raw_tp: failed %d\n", err); 
+        fprintf(stderr, "attach_raw_tp: failed %d\n", err);
         goto cleanup;
     }
 
@@ -105,7 +109,7 @@ int main(int argc, char *argv[])
     /* map should be still held by active mmap */
     data_map_fd = bpf_map_get_fd_by_id(data_map_id);
     if (data_map_fd < 0) {
-        fprintf(stderr, "get_map_by_id: failed %d\n", errno); 
+        fprintf(stderr, "get_map_by_id: failed %d\n", errno);
         munmap(map_mmaped, map_sz);
         goto cleanup;
     }
