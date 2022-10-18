@@ -20,14 +20,34 @@ struct {
 
 int my_pid = 0;
 
-inline void *ptr_translate(void *userspace_base_addr, void *kernel_base_addr, uint64_t userspace_ptr) {
+// #define ptr_translate(userspace_base_addr, kernel_base_addr, userspace_ptr)       \
+//     do {                                                                          \
+//         uint64_t delta = (uint64_t)userspace_ptr - (uint64_t)userspace_base_addr; \
+//         if (delta >= sizeof(struct shared_region)) {                              \
+//             return -1;                                                            \
+//         }                                                                         \
+//         if
+
+
+inline void *ptr_translate(
+    void *userspace_base_addr,
+    void *kernel_base_addr,
+    uint64_t userspace_ptr,
+    uint64_t struct_size) {
   uint64_t delta = userspace_ptr - (uint64_t)userspace_base_addr;
 
   if (delta >= sizeof(struct shared_region)) {
-    return kernel_base_addr;
+    return NULL;
   }
 
-  return kernel_base_addr + delta;
+  void* kernel_ptr = kernel_base_addr + delta;
+  if (struct_size > sizeof(struct shared_region)) {
+    return NULL;
+  }
+  if (kernel_ptr >= ((uint64_t) kernel_base_addr) + sizeof(struct shared_region) - struct_size) {
+    return NULL;
+  }
+  return kernel_ptr;
 }
 
 SEC("raw_tracepoint/sys_enter")
@@ -54,18 +74,24 @@ int test_mmap(void *ctx)
         bpf_printk("userspace pointer: %lx\n", * (uint64_t *) &shared_region->region[4]);
         bpf_printk("kernel pointer: %px\n", (uint64_t *) &shared_region->region[16]);
 
-        void *elem = ptr_translate(shared_region->userspace_base_addr, shared_region, * (uint64_t *) &shared_region->region[4]);
-        bpf_printk("kernel address ptr_translate: %px\n", elem);
-        struct test_struct *data = (struct test_struct *) elem;
+        void *elem = ptr_translate(shared_region->userspace_base_addr,
+                                   shared_region,
+                                   * (uint64_t *) &shared_region->region[4],
+                                   sizeof(struct test_struct));
+        if (elem == NULL) {
+            return -1;
+        }
+        // bpf_printk("kernel address ptr_translate: %px\n", elem);
+        // struct test_struct *data = (struct test_struct *) elem;
 
-        void * shared_region_end = shared_region + 1;
-        bpf_printk("Shared region start address: '%lx' and end address '%lx'\n", shared_region, shared_region_end);
+        // void * shared_region_end = shared_region + 1;
+        // bpf_printk("Shared region start address: '%lx' and end address '%lx'\n", shared_region, shared_region_end);
 
-        if (data < shared_region)
-            return 0;
-        if (data + 1 >= shared_region_end)
-            return 0;
-        bpf_printk("value: %d\n", data->a);
+        // if (data < shared_region)
+        //     return 0;
+        // if (data >= shared_region_end - sizeof(struct test_struct))
+        //     return 0;
+        bpf_printk("value: %d\n", ((struct test_struct*) elem)->a);
     }
     return 0;
 }
